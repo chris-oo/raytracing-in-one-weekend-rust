@@ -24,11 +24,11 @@ impl Vec3 {
         self.2
     }
 
-    fn length(&self) -> f64 {
+    pub fn length(&self) -> f64 {
         self.length_squared().sqrt()
     }
 
-    fn length_squared(&self) -> f64 {
+    pub fn length_squared(&self) -> f64 {
         self.0 * self.0 + self.1 * self.1 + self.2 * self.2
     }
 
@@ -201,6 +201,11 @@ impl Color {
     // Create a new color with rgb values.
     pub fn new(r: f64, g: f64, b: f64) -> Self {
         Color(Vec3(r, g, b))
+    }
+
+    /// Explicit conversion from Vec3 to color.
+    pub fn from_vec(vec: Vec3) -> Self {
+        Color(vec)
     }
 }
 
