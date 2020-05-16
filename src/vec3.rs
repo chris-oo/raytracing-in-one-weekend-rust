@@ -8,15 +8,19 @@ pub struct Vec3(f64, f64, f64);
 
 #[allow(dead_code)]
 impl Vec3 {
-    fn x(&self) -> f64 {
+    pub fn new(x: f64, y: f64, z: f64) -> Self {
+        Vec3(x, y, z)
+    }
+
+    pub fn x(&self) -> f64 {
         self.0
     }
 
-    fn y(&self) -> f64 {
+    pub fn y(&self) -> f64 {
         self.1
     }
 
-    fn z(&self) -> f64 {
+    pub fn z(&self) -> f64 {
         self.2
     }
 
@@ -40,7 +44,7 @@ impl Vec3 {
         )
     }
 
-    fn unit_vector(v: Vec3) -> Self {
+    pub fn unit_vector(v: Vec3) -> Self {
         v / v.length()
     }
 }
@@ -153,24 +157,12 @@ impl fmt::Display for Vec3 {
     }
 }
 
-// Use Newtype pattern for Point3 and Color
+// Point3 and Vec3 are just aliases for each other
+// TODO - Probably should use newtype here? but it results in all annoying
+// non-automatic from conversion in operators, even with deriving
+pub type Point3 = Vec3;
 
-macro_attr! {
-    /// 3D point (x, y, z)
-    #[derive(Clone, Copy, Debug,
-        NewtypeDisplay!,
-        NewtypeAdd!, NewtypeAddAssign!, NewtypeSub!, NewtypeMul!, NewtypeMulAssign!(f64),
-        NewtypeDiv!(f64), NewtypeDivAssign!(f64),
-        NewtypeDeref!, NewtypeDerefMut!)]
-    struct Point3(Vec3);
-}
-
-#[allow(dead_code)]
-impl Point3 {
-    pub fn new(x: f64, y: f64, z: f64) -> Self {
-        Point3(Vec3(x, y, z))
-    }
-}
+// Use Newtype pattern for Color
 
 macro_attr! {
     /// RGB Color (r, g, b)
@@ -180,6 +172,15 @@ macro_attr! {
         NewtypeDiv!(f64), NewtypeDivAssign!(f64),
         NewtypeDeref!, NewtypeDerefMut!)]
     pub struct Color(Vec3);
+}
+
+// TODO - Any way to derive this?
+impl Mul<Color> for f64 {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Self::Output {
+        Color(Vec3(self * rhs.x(), self * rhs.y(), self * rhs.z()))
+    }
 }
 
 impl fmt::Display for Color {
