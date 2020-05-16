@@ -35,9 +35,9 @@ fn main() {
     print!("P3\n{} {} \n255\n", image_width, image_height);
 
     let lower_left_corner = Point3::new(-2.0, -1.0, -1.0);
-    let origin = Point3::new(0.0, 0.0, 0.0);
     let horizontal = Vec3::new(4.0, 0.0, 0.0);
     let vertical = Vec3::new(0.0, 2.25, 0.0);
+    let origin = Point3::new(0.0, 0.0, 0.0);
 
     let mut world = HittableList::default();
     world.add(Sphere::new_rc(Point3::new(0.0, 0.0, -1.0), 0.5));
