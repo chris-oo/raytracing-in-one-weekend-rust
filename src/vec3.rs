@@ -32,11 +32,11 @@ impl Vec3 {
         self.0 * self.0 + self.1 * self.1 + self.2 * self.2
     }
 
-    fn dot(u: &Vec3, v: &Vec3) -> f64 {
+    pub fn dot(u: &Vec3, v: &Vec3) -> f64 {
         u.0 * v.0 + u.1 * v.1 + u.2 * v.2
     }
 
-    fn cross(u: &Vec3, v: &Vec3) -> Self {
+    pub fn cross(u: &Vec3, v: &Vec3) -> Self {
         Vec3(
             u.1 * v.2 - u.2 * v.1,
             u.2 * v.0 - u.0 * v.2,
