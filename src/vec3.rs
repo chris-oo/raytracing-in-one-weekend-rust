@@ -1,3 +1,4 @@
+use crate::utility;
 use std::fmt;
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
 
@@ -183,18 +184,18 @@ impl Mul<Color> for f64 {
     }
 }
 
-impl fmt::Display for Color {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // Write the translated [0,255] value of each color component.
-        write!(
-            f,
-            "{} {} {}",
-            (255.999 * self.x()) as i32,
-            (255.999 * self.y()) as i32,
-            (255.999 * self.z()) as i32,
-        )
-    }
-}
+// impl fmt::Display for Color {
+//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//         // Write the translated [0,255] value of each color component.
+//         write!(
+//             f,
+//             "{} {} {}",
+//             (255.999 * self.x()) as i32,
+//             (255.999 * self.y()) as i32,
+//             (255.999 * self.z()) as i32,
+//         )
+//     }
+// }
 
 #[allow(dead_code)]
 impl Color {
@@ -206,6 +207,26 @@ impl Color {
     /// Explicit conversion from Vec3 to color.
     pub fn from_vec(vec: Vec3) -> Self {
         Color(vec)
+    }
+
+    pub fn get_color_string(&self, samples_per_pixel: i32) -> String {
+        let mut r: f64 = self.x();
+        let mut g: f64 = self.y();
+        let mut b: f64 = self.z();
+
+        // Divide the color total by the number of samples.
+        let scale = 1.0 / samples_per_pixel as f64;
+        r *= scale;
+        g *= scale;
+        b *= scale;
+
+        // Write the translated [0,255] value of each color component.
+        format!(
+            "{} {} {}\n",
+            (256.0 * utility::clamp(r, 0.0, 0.999)) as i32,
+            (256.0 * utility::clamp(g, 0.0, 0.999)) as i32,
+            (256.0 * utility::clamp(b, 0.0, 0.999)) as i32,
+        )
     }
 }
 
