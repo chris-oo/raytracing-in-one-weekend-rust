@@ -1,4 +1,5 @@
 use crate::utility;
+use crate::utility::{random_f64, random_f64_range};
 use std::fmt;
 use std::ops::{Add, AddAssign, Div, DivAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub};
 
@@ -47,6 +48,51 @@ impl Vec3 {
 
     pub fn unit_vector(v: Vec3) -> Self {
         v / v.length()
+    }
+
+    /// Get a random unit vector.
+    pub fn random() -> Self {
+        Vec3(random_f64(), random_f64(), random_f64())
+    }
+
+    /// Get a random vector with a given min/max range.
+    pub fn random_range(min: f64, max: f64) -> Self {
+        Vec3(
+            random_f64_range(min, max),
+            random_f64_range(min, max),
+            random_f64_range(min, max),
+        )
+    }
+
+    /// Get a random vector within a unit sphere.
+    pub fn random_in_unit_sphere() -> Self {
+        loop {
+            let p = Vec3::random_range(-1.0, 1.0);
+            if p.length_squared() >= 1.0 {
+                continue;
+            }
+            return p;
+        }
+    }
+
+    /// Get a Lambertian distrubuted unit vector, see Section 8.5.
+    pub fn random_unit_vector() -> Self {
+        let a = random_f64_range(0.0, 2.0 * utility::PI);
+        let z = random_f64_range(-1.0, 1.0);
+        let r = f64::sqrt(1.0 - z * z);
+        Vec3(r * a.cos(), r * a.sin(), z)
+    }
+
+    /// Get an alternative diffuse vector, see Section 8.6.
+    pub fn random_in_hemisphere(normal: &Vec3) -> Self {
+        let in_unit_sphere = Vec3::random_in_unit_sphere();
+        if Vec3::dot(&in_unit_sphere, normal) > 0.0
+        // In the same hemisphere as the normal
+        {
+            in_unit_sphere
+        } else {
+            -in_unit_sphere
+        }
     }
 }
 
@@ -214,11 +260,11 @@ impl Color {
         let mut g: f64 = self.y();
         let mut b: f64 = self.z();
 
-        // Divide the color total by the number of samples.
+        // Divide the color total by the number of samples and gamma-correct for gamma=2.0.
         let scale = 1.0 / samples_per_pixel as f64;
-        r *= scale;
-        g *= scale;
-        b *= scale;
+        r = f64::sqrt(scale * r);
+        g = f64::sqrt(scale * g);
+        b = f64::sqrt(scale * b);
 
         // Write the translated [0,255] value of each color component.
         format!(
