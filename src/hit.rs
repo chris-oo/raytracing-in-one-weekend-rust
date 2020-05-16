@@ -1,11 +1,13 @@
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{Point3, Vec3};
 use std::rc::Rc;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
+    pub material: Rc<dyn Material>,
     pub t: f64,
     pub front_face: bool,
 }
@@ -23,7 +25,13 @@ impl HitRecord {
     /// Construct a new hit record using the specified point, time, and
     /// ray and outward normal to calculate the normal and if this hit record
     /// is facing the front or not.
-    pub fn new(p: Point3, r: &Ray, outward_normal: Vec3, t: f64) -> Self {
+    pub fn new(
+        p: Point3,
+        r: &Ray,
+        outward_normal: Vec3,
+        t: f64,
+        material: Rc<dyn Material>,
+    ) -> Self {
         let front_face = Vec3::dot(&r.direction(), &outward_normal) < 0.0;
         let normal = if front_face {
             outward_normal
@@ -35,6 +43,7 @@ impl HitRecord {
             p,
             normal,
             t,
+            material,
             front_face,
         }
     }
@@ -81,8 +90,8 @@ impl Hittable for HittableList {
 
         self.objects.iter().for_each(|object| {
             if let Some(new_hit) = object.hit(r, t_min, closest_so_far) {
-                hit = Some(new_hit);
                 closest_so_far = new_hit.t;
+                hit = Some(new_hit);
             }
         });
 

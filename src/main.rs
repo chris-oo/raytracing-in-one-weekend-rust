@@ -1,8 +1,9 @@
 use crate::camera::Camera;
 use crate::hit::{Hittable, HittableList};
+use crate::material::{Lambertian, Metal};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
-use crate::utility::{random_f64, random_f64_range};
+use crate::utility::random_f64;
 use crate::vec3::{Color, Point3, Vec3};
 use std::io::{self, Write};
 
@@ -13,6 +14,7 @@ extern crate newtype_derive;
 
 mod camera;
 mod hit;
+mod material;
 mod ray;
 mod sphere;
 mod utility;
@@ -25,9 +27,11 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     }
 
     if let Some(rec) = world.hit(r, 0.001, f64::INFINITY) {
-        let target = rec.p + rec.normal + Vec3::random_unit_vector();
-        // let target = rec.p + Vec3::random_in_hemisphere(&rec.normal);
-        return 0.5 * ray_color(&Ray::new(rec.p, target - rec.p), world, depth - 1);
+        if let Some((attenuation, scattered)) = rec.material.scatter(r, &rec) {
+            return attenuation * ray_color(&scattered, world, depth - 1);
+        } else {
+            return Color::new(0.0, 0.0, 0.0);
+        }
     }
 
     let unit_direction = Vec3::unit_vector(r.direction());
@@ -45,8 +49,28 @@ fn main() {
     print!("P3\n{} {} \n255\n", image_width, image_height);
 
     let mut world = HittableList::default();
-    world.add(Sphere::new_rc(Point3::new(0.0, 0.0, -1.0), 0.5));
-    world.add(Sphere::new_rc(Point3::new(0.0, -100.5, -1.0), 100.0));
+    world.add(Sphere::new_rc(
+        Point3::new(0.0, 0.0, -1.0),
+        0.5,
+        Lambertian::new(Color::new(0.7, 0.3, 0.3)),
+    ));
+    world.add(Sphere::new_rc(
+        Point3::new(0.0, -100.5, -1.0),
+        100.0,
+        Lambertian::new(Color::new(0.8, 0.8, 0.0)),
+    ));
+
+    world.add(Sphere::new_rc(
+        Point3::new(1.0, 0.0, -1.0),
+        0.5,
+        Metal::new(Color::new(0.8, 0.6, 0.2), 1.0),
+    ));
+    world.add(Sphere::new_rc(
+        Point3::new(-1.0, 0.0, -1.0),
+        0.5,
+        Metal::new(Color::new(0.8, 0.8, 0.8), 0.3),
+    ));
+
     let camera = Camera::new();
 
     (0..image_height).rev().for_each(|j| {
