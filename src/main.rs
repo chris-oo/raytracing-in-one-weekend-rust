@@ -42,19 +42,19 @@ fn main() {
     let lower_left_corner: Point3 =
         origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, 1.0);
 
-    for j in (0..image_height).rev() {
-        eprint!("\rScanlines remaining: {}", j);
+    (0..image_height).rev().for_each(|j| {
+        eprint!("\rScanlines remaining: {:4}", j);
         io::stderr().flush().unwrap();
 
-        for i in 0..image_width {
+        (0..image_width).for_each(|i| {
             let u = i as f64 / (image_width - 1) as f64;
             let v = j as f64 / (image_height - 1) as f64;
             let r = Ray::new(origin, lower_left_corner + u * horizontal + v * vertical);
             let pixel_color = ray_color(&r);
 
             print!("{}\n", pixel_color);
-        }
-    }
+        });
+    });
 
     eprint!("\nDone.\n");
 }
