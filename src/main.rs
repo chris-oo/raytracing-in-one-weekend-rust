@@ -7,8 +7,10 @@ use crate::utility::random_f64;
 use crate::vec3::{Color, Point3, Vec3};
 use rayon::prelude::*;
 use std::io::{self, Write};
-use std::sync::Arc;
+
+use std::sync::mpsc::channel;
 use std::sync::Mutex;
+use std::thread;
 
 #[macro_use]
 extern crate macro_attr;
@@ -22,16 +24,6 @@ mod ray;
 mod sphere;
 mod utility;
 mod vec3;
-
-fn decrement_and_print_lines_remaining(count: Arc<Mutex<i32>>) {
-    let mut val = count.lock().unwrap();
-    *val -= 1;
-
-    if *val % 25 == 0 {
-        eprint!("\rRender Scanlines remaining: {:4}", val);
-        io::stderr().flush().unwrap();
-    }
-}
 
 fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
     // If we've exceeded the ray bounce limit, no more light is gathered.
@@ -54,7 +46,7 @@ fn ray_color(r: &Ray, world: &dyn Hittable, depth: i32) -> Color {
 
 fn main() {
     let aspect_ratio = 16.0 / 9.0;
-    let image_width: i32 = 384;
+    let image_width: i32 = 1600;
     let image_height: i32 = (image_width as f64 / aspect_ratio) as i32;
     let samples_per_pixel = 100;
     let max_depth = 50;
@@ -97,12 +89,24 @@ fn main() {
         aspect_ratio,
     );
 
-    let line_count_remaining = Arc::new(Mutex::new(image_height));
+    let (send, recv) = channel::<i32>();
+
+    thread::spawn(move || {
+        let mut scanlines_remaining = image_height;
+
+        while scanlines_remaining > 0 {
+            recv.recv().unwrap();
+            scanlines_remaining -= 1;
+
+            eprint!("\rRender Scanlines remaining: {:4}", scanlines_remaining);
+            io::stderr().flush().unwrap();
+        }
+    });
 
     let image: Vec<Vec<_>> = (0..image_height)
         .into_par_iter()
         .rev()
-        .map(|j| {
+        .map_with(send, |s, j| {
             let scanline: Vec<_> = (0..image_width)
                 .map(|i| {
                     let mut pixel_color = Color::new(0.0, 0.0, 0.0);
@@ -118,7 +122,7 @@ fn main() {
                 })
                 .collect();
 
-            decrement_and_print_lines_remaining(line_count_remaining.clone());
+            s.send(1).unwrap();
 
             scanline
         })
