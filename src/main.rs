@@ -89,7 +89,13 @@ fn main() {
         Dielectric::new(1.5),
     ));
 
-    let camera = Camera::new();
+    let camera = Camera::new(
+        Point3::new(-2.0, 2.0, 1.0),
+        Point3::new(0.0, 0.0, -1.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        20.0,
+        aspect_ratio,
+    );
 
     let line_count_remaining = Arc::new(Mutex::new(image_height));
 
