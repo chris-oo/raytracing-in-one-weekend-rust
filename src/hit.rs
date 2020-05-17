@@ -1,13 +1,13 @@
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{Point3, Vec3};
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct HitRecord {
     pub p: Point3,
     pub normal: Vec3,
-    pub material: Rc<dyn Material>,
+    pub material: Arc<dyn Material>,
     pub t: f64,
     pub front_face: bool,
 }
@@ -30,7 +30,7 @@ impl HitRecord {
         r: &Ray,
         outward_normal: Vec3,
         t: f64,
-        material: Rc<dyn Material>,
+        material: Arc<dyn Material>,
     ) -> Self {
         let front_face = Vec3::dot(&r.direction(), &outward_normal) < 0.0;
         let normal = if front_face {
@@ -62,7 +62,7 @@ pub trait Hittable {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
 }
 
-impl std::fmt::Debug for dyn Hittable {
+impl std::fmt::Debug for dyn Hittable + Send + Sync {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
@@ -70,7 +70,7 @@ impl std::fmt::Debug for dyn Hittable {
 
 #[derive(Debug, Clone, Default)]
 pub struct HittableList {
-    objects: Vec<Rc<dyn Hittable>>,
+    objects: Vec<Arc<dyn Hittable + Send + Sync>>,
 }
 
 impl HittableList {
@@ -78,7 +78,7 @@ impl HittableList {
         self.objects.clear();
     }
 
-    pub fn add(&mut self, object: Rc<dyn Hittable>) {
+    pub fn add(&mut self, object: Arc<dyn Hittable + Send + Sync>) {
         self.objects.push(object);
     }
 }

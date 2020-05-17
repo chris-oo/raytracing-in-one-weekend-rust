@@ -3,7 +3,7 @@ use crate::ray::Ray;
 use crate::utility::random_f64;
 use crate::vec3::Color;
 use crate::vec3::Vec3;
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub trait Material {
     /// Returns the attenuation and scatter ray by the material in the
@@ -25,8 +25,8 @@ pub struct Lambertian {
 }
 
 impl Lambertian {
-    pub fn new(albedo: Color) -> Rc<Self> {
-        Rc::new(Lambertian { albedo })
+    pub fn new(albedo: Color) -> Arc<Self> {
+        Arc::new(Lambertian { albedo })
     }
 }
 
@@ -46,8 +46,8 @@ pub struct Metal {
 }
 
 impl Metal {
-    pub fn new(albedo: Color, fuzz: f64) -> Rc<Self> {
-        Rc::new(Metal {
+    pub fn new(albedo: Color, fuzz: f64) -> Arc<Self> {
+        Arc::new(Metal {
             albedo,
             fuzz: if fuzz < 1.0 { fuzz } else { 1.0 },
         })
@@ -73,8 +73,8 @@ pub struct Dielectric {
 }
 
 impl Dielectric {
-    pub fn new(ref_idx: f64) -> Rc<Self> {
-        Rc::new(Dielectric { ref_idx })
+    pub fn new(ref_idx: f64) -> Arc<Self> {
+        Arc::new(Dielectric { ref_idx })
     }
 
     fn schlick(cosine: f64, ref_idx: f64) -> f64 {

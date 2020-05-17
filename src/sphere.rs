@@ -3,16 +3,16 @@ use crate::hit::Hittable;
 use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{Point3, Vec3};
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub struct Sphere {
     center: Point3,
     radius: f64,
-    material: Rc<dyn Material>,
+    material: Arc<dyn Material + Send + Sync>,
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f64, material: Rc<dyn Material>) -> Self {
+    pub fn new(center: Point3, radius: f64, material: Arc<dyn Material + Send + Sync>) -> Self {
         Sphere {
             center,
             radius,
@@ -20,8 +20,12 @@ impl Sphere {
         }
     }
 
-    pub fn new_rc(center: Point3, radius: f64, material: Rc<dyn Material>) -> Rc<Self> {
-        Rc::new(Sphere::new(center, radius, material))
+    pub fn new_arc(
+        center: Point3,
+        radius: f64,
+        material: Arc<dyn Material + Send + Sync>,
+    ) -> Arc<Self> {
+        Arc::new(Sphere::new(center, radius, material))
     }
 }
 
