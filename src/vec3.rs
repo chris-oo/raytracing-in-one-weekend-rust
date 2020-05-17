@@ -105,6 +105,20 @@ impl Vec3 {
         let r_out_perp = -f64::sqrt(1.0 - r_out_parallel.length_squared()) * (*n);
         r_out_parallel + r_out_perp
     }
+
+    pub fn random_in_unit_disk() -> Self {
+        loop {
+            let p = Vec3(
+                random_f64_range(-1.0, 1.0),
+                random_f64_range(-1.0, 1.0),
+                0.0,
+            );
+            if p.length_squared() >= 1.0 {
+                continue;
+            }
+            return p;
+        }
+    }
 }
 
 impl Neg for Vec3 {
@@ -264,6 +278,10 @@ impl Color {
     /// Explicit conversion from Vec3 to color.
     pub fn from_vec(vec: Vec3) -> Self {
         Color(vec)
+    }
+
+    pub fn random() -> Self {
+        Color(Vec3(random_f64(), random_f64(), random_f64()))
     }
 
     pub fn get_color_string(&self, samples_per_pixel: i32) -> String {
